@@ -1,6 +1,5 @@
 import log from 'book';
 import Koa from 'koa';
-import tldjs from 'tldjs';
 import Debug from 'debug';
 import http from 'http';
 import Promise from 'bluebird';
@@ -10,8 +9,15 @@ import rand_id from './lib/rand_id';
 
 const debug = Debug('localtunnel:server');
 
-function GetClientIdFromHostname(hostname) {
-    return tldjs.getSubdomain(hostname);
+function GetClientIdFromHostname(hostname, basedomain) {
+    const subdomain = hostname.split('.')[0];
+    if (basedomain === hostname || subdomain === hostname) {
+        return false;
+    }
+    if (subdomain === '_') {
+        return false;
+    }
+    return subdomain;
 }
 
 module.exports = function(opt) {
@@ -115,7 +121,7 @@ module.exports = function(opt) {
             return;
         }
 
-        const clientId = GetClientIdFromHostname(hostname);
+        const clientId = GetClientIdFromHostname(hostname, opt.domain);
         if (!clientId) {
             appCallback(req, res);
             return;
@@ -137,7 +143,7 @@ module.exports = function(opt) {
             return;
         }
 
-        const clientId = GetClientIdFromHostname(hostname);
+        const clientId = GetClientIdFromHostname(hostname, opt.domain);
         if (!clientId) {
             sock.destroy();
             return;
