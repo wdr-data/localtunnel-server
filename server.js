@@ -39,6 +39,12 @@ module.exports = function(opt) {
         };
     });
 
+    const get_url = (reqHost, info) => {
+        const host = reqHost.startsWith('_.') ? reqHost.substr(2) : reqHost;
+        const url = schema + '://' + info.id + '.' + host;
+        return url;
+    }
+
     // root endpoint
     app.use(async (ctx, next) => {
         const path = ctx.request.path;
@@ -55,8 +61,7 @@ module.exports = function(opt) {
             debug('making new client with id %s', req_id);
             const info = await manager.newClient(req_id);
 
-            const url = schema + '://' + info.id + '.' + ctx.request.host;
-            info.url = url;
+            info.url = get_url(ctx.request.host, info);
             ctx.body = info;
             return;
         }
@@ -93,8 +98,7 @@ module.exports = function(opt) {
         debug('making new client with id %s', req_id);
         const info = await manager.newClient(req_id);
 
-        const url = schema + '://' + info.id + '.' + ctx.request.host;
-        info.url = url;
+        info.url = get_url(ctx.request.host, info);
         ctx.body = info;
         return;
     });
